@@ -1,0 +1,7 @@
+require 'test_configuration'
+require 'test_command_line'
+require 'test_controller'
+require 'test_raw_task'
+require 'test_repository'
+require 'test_task'
+require 'test_tester'

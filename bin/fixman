@@ -1,0 +1,69 @@
+#!/usr/bin/env ruby
+
+require 'fixman'
+
+include Fixman::CommandLine
+include Fixman::Utilities 
+
+options = parse_options!(ARGV)
+command, args = parse_positional_arguments!(ARGV)
+conf = Fixman::Configuration.read options[:conf_path]
+
+IS_NONEMPTY = ->(input) { !(input =~ /^\s*$/) }
+VALID_GROUP = ->(input) { conf.groups.include? input.downcase.to_sym }
+
+INTERACTIVE_SESSION_DATA_FOR_ADD = [
+  { symbol: :url, prompt: 'Remote repository URL', label: 'URL', condition: IS_NONEMPTY },
+  { symbol: :name, prompt: 'Repository name', label: 'Name', condition: IS_NONEMPTY },
+  { symbol: :owner, prompt: 'Owner', label: 'Owner', condition: IS_NONEMPTY },
+  { symbol: :groups, prompt: 'Groups', label: 'Groups', condition: VALID_GROUP },
+  { symbol: :notes, prompt: 'Notes', label: 'Notes' }
+] + conf[:extra_repo_info]
+
+case command
+when :test
+  tester = Fixman::Tester.new conf
+  tester.test
+when [:list, :shortlist]
+  repos = Fixman::Controller.open conf do |controller|
+    controller.repos
+  end
+
+  puts(command == :list ? repos : repos.map(&:summary))
+when :add
+  input = get_input_interactively [INTERACTION_SESSION_DATA_FOR_ADD.shift]
+  owner, name = Fixman::Repository.extract_owner_and_name input[:url][:data]
+  if owner && name
+    2.times { INTERACTIVE_SESSION_DATA_FOR_ADD.shift }
+    input[:name] = name
+    input[:owner] = owner
+  end
+  input[:sha] = Fixman::Repository.retrieve_head_sha
+  input.merge!(get_input_interactively INTERACTION_SESSION_DATA_FOR_ADD)
+
+  Fixman::Controller.open conf do |controller|
+    controller.add input, conf.fixtures_base, conf.extra_repo_info
+  end
+when :delete
+  Fixman::Controller.open conf do |controller|
+    begin
+      controller.delete args[:canonical_name]
+    rescue ArgumentError
+      error "Input #{args[:canonical_name]} is not a valid canonical \
+        repository name."
+    end
+  end
+when :fetch
+  Fixman::Controller.open conf do |controller|
+    controller.fetch args[:groups]
+  end
+when :update
+  Fixman::Controller.open conf do |controller|
+    update_args = [args[:canonical_name], args[:sha]].compact
+    controller.update(*update_args)
+  end
+when :upgrade
+  Fixman::Controller.open conf do |controller|
+    controller.upgrade args[:groups]
+  end
+end
