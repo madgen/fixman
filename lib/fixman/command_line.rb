@@ -1,16 +1,16 @@
 require 'optparse'
 require 'pathname'
 require 'fixman/utilities'
+require 'fixman/configuration'
 
 module Fixman
   module CommandLine
-    DEFAULT_CONF_FILE = '.fixman_conf.yaml'
-
     include Utilities
 
     def parse_options!(args)
       options = {}
-      options[:conf_path] =  Pathname.new DEFAULT_CONF_FILE
+      options[:conf_path] =
+        Pathname.new Fixman::Configuration::DEFAULT_CONF_FILE
 
       parser = OptionParser.new do |opts|
         opts.banner = "Usage: #{NAME} [option]"

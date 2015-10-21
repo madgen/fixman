@@ -8,6 +8,7 @@ require 'classy_hash'
 module Fixman
   class Configuration
     DEFAULT_LEDGER_FILE = '.fixman_ledger.yaml'
+    DEFAULT_CONF_FILE = '.fixman_conf.yaml'
 
     CONDITION_OR_CLEANUP_SCHEMA = [
       {
