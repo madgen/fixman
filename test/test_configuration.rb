@@ -15,6 +15,7 @@ class TestConfiguration < Minitest::Test
         }
       ],
     }
+
     assert_nil CH.validate(conf_params, Fixman::Configuration::CONF_SCHEMA)
   end
 end
