@@ -24,8 +24,7 @@ module Fixman
       targets = collect task.condition
       failures = []
       targets.each do |target|
-        successful = task.run target
-        failures << target unless successful
+        failures << target unless task.run target
       end
       report task.name, targets, failures
     end

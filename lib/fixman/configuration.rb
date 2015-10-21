@@ -2,6 +2,7 @@ require 'English'
 require 'yaml'
 require 'pathname'
 require 'fixman/utilities'
+require 'fixman/task_parse_error'
 require 'classy_hash'
 
 module Fixman
@@ -9,18 +10,19 @@ module Fixman
     DEFAULT_LEDGER_FILE = '.fixman_ledger.yaml'
 
     CONDITION_OR_CLEANUP_SCHEMA = [
-    {
-      type: CH::G.enum(:ruby),
-      action: ->(v) {
-        v.is_a?(String) && eval(v).is_a?(Proc) ||
-        'Action is not a valid Proc object'
+      {
+        type: CH::G.enum(:ruby),
+        action: ->(v) {
+          v.is_a?(String) && eval(v).is_a?(Proc) ||
+          'Action is not a valid Proc object'
+        }
+      },
+      {
+        type: CH::G.enum(:shell),
+        action: String,
+        exit_status: 0..255
       }
-    },
-    {
-      type: CH::G.enum(:shell),
-      action: String,
-      exit_status: 0..255
-    }]
+    ]
 
     REPO_INFO_SCHEMA = {
       symbol: Symbol,
@@ -33,7 +35,7 @@ module Fixman
       name: String ,
       command: {
         action: String,
-        exit_status: 0..255
+        exit_status: [:optional, 0..255]
       },
       condition: [:optional, CONDITION_OR_CLEANUP_SCHEMA],
       cleanup: [:optional, CONDITION_OR_CLEANUP_SCHEMA],
@@ -42,9 +44,28 @@ module Fixman
 
     CONF_SCHEMA = {
       fixtures_base: String,
-      tasks: [[ TASK_SCHEMA ]],
+      fixtures_ledger: [:optional, String],
+      tasks: ->(tasks) {
+        if tasks.is_a?(Array) && tasks.size > 0
+          begin
+            tasks.all? do |task|
+              begin
+                CH.validate task, TASK_SCHEMA
+              rescue => e
+                index = tasks.find_index task
+                raise Fixman::TaskParseError.new(e, index)
+              end
+              true
+            end
+          rescue Fixman::TaskParseError => e
+            e.message
+          end
+        else
+          "a non-empty array"
+        end
+      },
       groups: [:optional, [ String ]],
-      extra_repo_info: [:optional, [ REPO_INFO_SCHEMA ]],
+      extra_repo_info: [:optional, [ REPO_INFO_SCHEMA ]]
     }
 
     include Fixman::Utilities
@@ -56,7 +77,7 @@ module Fixman
                    raw_tasks,
                    groups,
                    extra_repo_info)
-      @fixtures_base = Pathname.new fixtures_base
+      @fixtures_base = Pathname.new(fixtures_base)
       @fixture_ledger = Pathname.new(fixture_ledger)
       @raw_tasks = raw_tasks
       @extra_repo_info = extra_repo_info
@@ -117,14 +138,27 @@ module Fixman
           condition = task[:condition]
           if !condition
             task[:condition] = {
-              type: :ruby
+              type: :ruby,
+              action: 'proc { true }'
             }
           elsif condition[:type] == :shell && !condition[:exit_status]
             condition[:exit_status] = 0
           end
+
+          cleanup = task[:cleanup]
+          if !cleanup
+            task[:cleanup] = {
+              type: :ruby,
+              action: 'proc { true }'
+            }
+          end
+
+          task[:variables] = [] unless task[:variables]
         end
 
-        conf_hash[:fixture_ledger] = DEFAULT_LEDGER_FILE unless conf_hash[:fixture_ledger]
+        unless conf_hash[:fixture_ledger]
+          conf_hash[:fixture_ledger] = DEFAULT_LEDGER_FILE
+        end
 
         [:groups, :extra_repo_info].each do |key|
           conf_hash[key] = [] unless conf_hash[key]

@@ -10,6 +10,7 @@ lib/fixman/controller.rb
 lib/fixman/raw_task.rb
 lib/fixman/repository.rb
 lib/fixman/task.rb
+lib/fixman/task_parse_error.rb
 lib/fixman/tester.rb
 test/test_fixman.rb
 test/test_command_line.rb
