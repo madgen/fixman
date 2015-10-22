@@ -16,9 +16,7 @@ module Fixman
       $
     }xi
 
-    attr_accessor :url, :name, :owner, :sha, :groups,
-                  :notes, :other_fields
-
+    attr_accessor :url, :name, :owner, :sha, :groups, :other_fields
     attr_reader :path
 
     def initialize(repo_params, fixtures_base, extra_repo_info)
@@ -27,8 +25,9 @@ module Fixman
       @owner = repo_params[:owner]
       @sha = repo_params[:sha]
       @groups = repo_params[:groups]
-      @notes = repo_params[:notes]
-      @other_fields = repo_params[:other_fields]
+
+      [:url, :name, :owner, :sha, :groups].each { |key| repo_params.delete key }
+      @other_fields = repo_params
 
       @extra_repo_info = extra_repo_info
       @path = fixtures_base + canonical_name
@@ -63,7 +62,6 @@ module Fixman
       str.puts 'URL'.ljust(FIELD_LABEL_WIDTH) + @url
       str.puts 'Commit SHA'.ljust(FIELD_LABEL_WIDTH) + @sha
       str.puts 'Groups'.ljust(FIELD_LABEL_WIDTH) + @groups.join(', ')
-      str.puts 'Notes'.ljust(FIELD_LABEL_WIDTH) + @notes
       @extra_repo_info.each do |info|
         str.puts info[:label].ljust(FIELD_LABEL_WIDTH) +
           @other_fields[info[:symbol]]

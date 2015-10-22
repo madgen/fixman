@@ -29,11 +29,13 @@ module Fixman
       symbol: Symbol,
       prompt: String,
       label: String,
-      condition: Symbol,
+      type: Symbol,
+      choices: [:optional, [String]]
     }
 
     TASK_SCHEMA = {
       name: String ,
+      target_placeholder: [:optional, String],
       command: {
         action: String,
         exit_status: [:optional, 0..255]
