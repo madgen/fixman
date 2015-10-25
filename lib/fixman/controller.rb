@@ -66,7 +66,9 @@ module Fixman
     class << self
       # Controller for the command line interface.
       def open(conf)
-        controller = 
+        original_ledger = ""
+
+        controller =
         begin
           original_ledger = YAML.load(IO.read conf.fixture_ledger)
 
@@ -83,25 +85,25 @@ module Fixman
 
         result = yield controller
 
-        controller.write_ledger
+        write_ledger controller.repos, original_ledger, conf.fixture_ledger
 
         result
       rescue Git::GitExecuteError => error
         puts error.message
         exit 1
       end
+
+      private
+
+      def write_ledger(repos, original_ledger, fixture_ledger)
+        new_ledger = YAML.dump repos.map(&:to_yaml)
+        if new_ledger != original_ledger
+          IO.write fixture_ledger, original_ledger
+        end
+      end
     end
 
     private
-
-    # If the repository manifest is changed due to our actions, 
-    # then the manifest is overwritten.
-    def write_ledger conf, original_ledger
-      new_ledger YAML.dump controller.repos.map(&:to_yaml)
-      if new_ledger != original_ledger
-        IO.write conf.fixture_ledger, original_ledger
-      end
-    end
 
     def find_by_groups(groups)
       if groups.empty?

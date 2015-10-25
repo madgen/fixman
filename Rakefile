@@ -11,7 +11,7 @@ Hoe.spec 'fixman' do
   developer("Mistral Contrastin", "madgenhetic@gmail.com")
   self.readme_file = 'README.md'
 
-  dependency 'classy_hash', '>= 0.1.5'
+  dependency 'classy_hash', '~> 0.1'
 
   license 'Apache'
 end

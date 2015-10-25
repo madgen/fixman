@@ -12,6 +12,7 @@ lib/fixman/repository.rb
 lib/fixman/task.rb
 lib/fixman/task_parse_error.rb
 lib/fixman/tester.rb
+lib/fixman/utilities.rb
 test/test_fixman.rb
 test/test_command_line.rb
 test/test_configuration.rb

@@ -30,24 +30,24 @@ module Fixman
       prompt: String,
       label: String,
       type: Symbol,
-      choices: [:optional, [String]]
+      choices: [ :optional, [[String]] ]
     }
 
     TASK_SCHEMA = {
       name: String ,
-      target_placeholder: [:optional, String],
+      target_placeholder: [ :optional, String ],
       command: {
         action: String,
-        exit_status: [:optional, 0..255]
+        exit_status: [ :optional, 0..255 ]
       },
-      condition: [:optional, CONDITION_OR_CLEANUP_SCHEMA],
-      cleanup: [:optional, CONDITION_OR_CLEANUP_SCHEMA],
-      groups: [:optional, [ String ]]
+      condition: [ :optional, CONDITION_OR_CLEANUP_SCHEMA ],
+      cleanup: [ :optional, CONDITION_OR_CLEANUP_SCHEMA ],
+      groups: [ :optional, [[ String ]] ]
     }
 
     CONF_SCHEMA = {
       fixtures_base: String,
-      fixtures_ledger: [:optional, String],
+      fixtures_ledger: [ :optional, String ],
       tasks: ->(tasks) {
         if tasks.is_a?(Array) && tasks.size > 0
           begin
@@ -67,13 +67,13 @@ module Fixman
           "a non-empty array"
         end
       },
-      groups: [:optional, [ String ]],
-      extra_repo_info: [:optional, [ REPO_INFO_SCHEMA ]]
+      groups: [ :optional, [[ String ]] ],
+      extra_repo_info: [ :optional, [[ REPO_INFO_SCHEMA ]] ]
     }
 
     include Fixman::Utilities
 
-    attr_reader :fixtures_base, :fixture_ledger, :raw_tasks, :extra_repo_info
+    attr_reader :fixtures_base, :fixture_ledger, :raw_tasks, :extra_repo_info, :groups
 
     def initialize(fixtures_base,
                    fixture_ledger,
@@ -87,50 +87,22 @@ module Fixman
       @groups = groups
     end
 
-    def extract_repo_input_condition(extra_repo_info)
-      opt = extra_repo_info[:optional]
-      cho = extra_repo_info[:choices]
-
-      if opt && cho
-        ->(input) { (cho + [:'']).include? input }
-      elsif opt && !cho
-        proc { true }
-      elsif !opt && cho
-        ->(input) { cho.include? input }
-      elsif !opt && !cho
-        ->(input) { !(input =~ /^\s+$/) }
-      end
-    end
-
-    def refine_extra_repo_info(extra_repo_info)
-      extra_repo_info.map do |info|
-        {
-          symbol: info[:symbol],
-          prompt: info[:prompt],
-          label: info[:label],
-          condition: extract_repo_input_condition(extra_repo_info)
-        }
-      end
-    end
-
     class << self
       def read(path_to_conf)
         conf_yaml = YAML.load IO.read(path_to_conf)
 
-        ClasyHash.validate conf_yaml, CONF_SCHEMA
+        ClassyHash.validate conf_yaml, CONF_SCHEMA
         initialize_defaults conf_yaml
 
         raw_tasks = conf_yaml[:tasks].map do |task|
           RawTask.new task
         end
 
-        extra_repo_info = refine_extra_repo_info conf_yaml[:extra_repo_info]
-
-        Configuration.new conf_yaml[:fixtures_base],
+        Configuration.new(conf_yaml[:fixtures_base],
+                          conf_yaml[:fixture_ledger],
                           raw_tasks,
-                          extra_repo_info,
-                          conf_yaml[:groups]
-                          conf_yaml[:fixture_ledger]
+                          conf_yaml[:groups],
+                          conf_yaml[:extra_repo_info])
       end
 
       def initialize_defaults(conf_hash)

@@ -107,8 +107,10 @@ module Fixman
         start_session input, OWNER_TEMPLATE
       end
 
-      GROUPS_TEMPLATE[:choices] = groups
-      start_session input, GROUPS_TEMPLATE
+      unless groups.empty?
+        GROUPS_TEMPLATE[:choices] = groups
+        start_session input, GROUPS_TEMPLATE
+      end
 
       extra_templates.each do |template|
         start_session input, template
