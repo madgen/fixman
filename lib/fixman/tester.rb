@@ -13,7 +13,7 @@ module Fixman
     def test
       @conf.raw_tasks.each do |raw_task|
         raw_task.refine.each do |task|
-          puts test_task
+          puts(test_task task)
         end
       end
     end
@@ -55,7 +55,7 @@ module Fixman
       sio.puts "#{name} (#{n_of_successes}/#{n_of_targets})"
       sio.puts '-' * TERMINAL_WIDTH
       if n_of_successes == n_of_targets
-        sio.puts 'All targets run as expected.'
+        sio.puts 'All targets ran as expected.'
       else
         sio.puts "Failing targets:"
         sio.puts failures.sort

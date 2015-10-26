@@ -33,6 +33,10 @@ module Fixman
       @path = fixtures_base + canonical_name
     end
 
+    def fetched?
+      File.exist? @path
+    end
+
     def fetch
       git = Git.clone @url, @path
       git.reset_hard @sha

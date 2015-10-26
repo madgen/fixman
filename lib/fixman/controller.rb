@@ -31,13 +31,12 @@ module Fixman
 
     # Download repositories belonging to the at least one of the given groups.
     def fetch(groups)
-      repos = find_by_groups(groups) 
+      repos = find_by_groups(groups).reject { |repo| repo.fetched? }
       repos.each do |repo|
         begin
           repo.fetch
         rescue Git::GitExecuteError => error
-          STDERR.puts "Warning: Repository #{repo.canonical_name} could not be \
-            fetched."
+          STDERR.puts "Warning: Repository #{repo.canonical_name} could not be fetched."
           STDERR.puts error.message
         end
       end
@@ -71,7 +70,9 @@ module Fixman
         controller =
         begin
           original_ledger = YAML.load(IO.read conf.fixture_ledger)
+          original_ledger.map! { |entry| YAML.load entry } 
 
+          repos = []
           original_ledger.each do |repo_params|
             repos << Repository.new(repo_params,
                                     conf.fixtures_base,
@@ -98,7 +99,7 @@ module Fixman
       def write_ledger(repos, original_ledger, fixture_ledger)
         new_ledger = YAML.dump repos.map(&:to_yaml)
         if new_ledger != original_ledger
-          IO.write fixture_ledger, original_ledger
+          IO.write fixture_ledger, new_ledger
         end
       end
     end

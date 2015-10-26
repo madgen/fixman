@@ -1,12 +1,16 @@
 require 'fixman'
 require 'minitest'
+require 'minitest/mock'
 
 class TestController < Minitest::Test
-  def test_open
-    expected_conf_hash = {}
-    mock_conf = MiniTest::Mock.new
-    YAML.stub(:load, expected_ledger_hash) do
-      Fixman::Controller.open conf
+
+  def test_write_ledger
+    original_ledger = ""
+    repos = Minitest::Mock.new.expect(:map, ['abc','def'])
+    Tempfile.open 'location' do |t|
+      Fixman::Controller.send :write_ledger, repos, original_ledger, t.path
+      t.rewind
+      assert_equal "---\n- abc\n- def\n", t.read
     end
   end
 end

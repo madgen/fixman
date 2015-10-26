@@ -1,5 +1,6 @@
 require 'optparse'
 require 'pathname'
+require 'set'
 require 'fixman/utilities'
 require 'fixman/configuration'
 
@@ -8,28 +9,28 @@ module Fixman
 
     URL_TEMPLATE = {
       symbol: :url,
-      prompt: 'Remote repository URL',
+      prompt: 'Remote repository URL: ',
       label: 'URL',
       type: :mandatory
     }
 
     NAME_TEMPLATE = {
       symbol: :name,
-      prompt: 'Repository name',
+      prompt: 'Repository name: ',
       label: 'Name',
       type: :mandatory
     }
 
     OWNER_TEMPLATE = {
       symbol: :owner,
-      prompt: 'Owner',
+      prompt: 'Owner: ',
       label: 'Owner',
       type: :mandatory
     }
 
     GROUPS_TEMPLATE = {
       symbol: :groups,
-      prompt: 'Groups',
+      prompt: 'Groups: ',
       label: 'Groups',
       type: :multiple_choice
     }
@@ -142,7 +143,7 @@ module Fixman
       when :single_choice
         loop do
           puts template[:prompt]
-          print "Choose one from #{template[:choices].join('/')}"
+          print "Choose one from #{template[:choices].join('/')}: "
           raw_input = get_input
           choice_index =
             template[:choices].map(&:downcase).find_index raw_input.strip.downcase
@@ -156,7 +157,7 @@ module Fixman
         downcase_choices = choices.map(&:downcase)
         loop do
           puts template[:prompt]
-          print "Comma separated multiple choice #{template[:choices].join('/')}"
+          print "Comma separated multiple choice #{template[:choices].join('/')}: "
           raw_input = get_input.split(',').map(&:strip)
           raw_choices = raw_input.map(&:downcase).to_set
 

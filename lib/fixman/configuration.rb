@@ -21,7 +21,7 @@ module Fixman
       {
         type: CH::G.enum(:shell),
         action: String,
-        exit_status: 0..255
+        exit_status: [ :optional, 0..255 ]
       }
     ]
 
@@ -34,7 +34,7 @@ module Fixman
     }
 
     TASK_SCHEMA = {
-      name: String ,
+      name: String,
       target_placeholder: [ :optional, String ],
       command: {
         action: String,
@@ -109,6 +109,9 @@ module Fixman
         conf_hash[:tasks].each do |task|
           command = task[:command]
           command[:exit_status] = 0 unless command[:exit_status]
+          unless task[:target_placeholder]
+            task[:target_placeholder] = 'TARGET'
+          end
 
           condition = task[:condition]
           if !condition
@@ -137,6 +140,10 @@ module Fixman
 
         [:groups, :extra_repo_info].each do |key|
           conf_hash[key] = [] unless conf_hash[key]
+        end
+
+        conf_hash[:extra_repo_info].each do |repo_info|
+          repo_info[:prompt] << ' '
         end
       end
     end
