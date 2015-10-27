@@ -10,20 +10,30 @@ module Fixman
     DEFAULT_LEDGER_FILE = '.fixman_ledger.yaml'
     DEFAULT_CONF_FILE = '.fixman_conf.yaml'
 
-    CONDITION_OR_CLEANUP_SCHEMA = [
-      {
-        type: CH::G.enum(:ruby),
-        action: ->(v) {
-          v.is_a?(String) && eval(v).is_a?(Proc) ||
-          'Action is not a valid Proc object'
-        }
-      },
-      {
-        type: CH::G.enum(:shell),
-        action: String,
-        exit_status: [ :optional, 0..255 ]
-      }
-    ]
+    CONDITION_OR_CLEANUP_SCHEMA = ->(h) {
+      return ':type is mising' unless h.has_key? :type
+      unless [:ruby, :shell].include? h[:type]
+        return ':type must be one of :ruby or :shell'
+      end
+      return ':action is mising' unless h.has_key? :action
+      return ':action should be a String' unless h[:action].is_a? String
+
+      if h[:type] == :ruby 
+        begin
+          # Here a misformed Ruby source would also throw an ArgumentError
+          raise ArgumentError unless eval(h[:action]).is_a? Proc
+        rescue ArgumentError
+          return ':action should evaluate to a Proc object'
+        end
+      elsif h[:type] == :shell && h[:exit_status]
+        es = h[:exit_status]
+        unless es.is_a?(Integer) && (0..255).include?(es)
+          return ':exit_status should be an integer in 0..255 range'
+        end
+      end
+
+      true
+    }
 
     REPO_INFO_SCHEMA = {
       symbol: Symbol,
