@@ -91,6 +91,8 @@ module Fixman
           shell_command
         end
 
+        final_command_str << ' &> /dev/null'
+
         system(final_command_str)
         if exit_status
           $CHILD_STATUS.exitstatus == exit_status
