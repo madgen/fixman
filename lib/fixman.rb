@@ -8,6 +8,6 @@ require 'fixman/task_parse_error'
 require 'fixman/tester'
 
 module Fixman
-  VERSION = '1.0.0'
+  VERSION = '0.1.0'
   NAME = 'fixman'
 end
