@@ -1,6 +1,6 @@
 # fixman
 
-code  :: https://github.com/madgen/fixman (url)
+home  :: https://github.com/madgen/fixman
 
 ## DESCRIPTION:
 
