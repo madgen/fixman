@@ -21,8 +21,10 @@ module Fixman
     private
 
     def test_task task
+      puts "Collecting targets for #{task.name}..."
       targets = collect task.condition
       failures = []
+      puts "Running the #{task.name} on targets..."
       targets.each do |target|
         failures << target unless task.run target
       end

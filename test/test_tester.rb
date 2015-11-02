@@ -42,7 +42,9 @@ class TestTester < Minitest::Test
     tester = Fixman::Tester.new @conf
     task = Fixman::Task.new 'test_task', @condition, @command, @cleanup
     expected_result = tester.send(:report, 'test_task', @expected_targets, [])
-    assert_equal expected_result, tester.send(:test_task, task)
+    assert_output(output_for_test_task(task)) do
+      assert_equal expected_result, tester.send(:test_task, task)
+    end
   end
 
   def test_test_task_notes_failures
@@ -66,11 +68,22 @@ class TestTester < Minitest::Test
 
     task = raw_task.refine.first
     task.instance_variable_set :@condition, @condition
-    tester.send(:test_task, task)
+    assert_output(output_for_test_task(task)) do
+      tester.send(:test_task, task)
+    end
     failures = @expected_targets.select do |target|
       !(target.to_s =~ /12/)
     end
     expected_result = tester.send(:report, 'test_task', @expected_targets, failures)
-    assert_equal expected_result, tester.send(:test_task, task)
+    assert_output(output_for_test_task(task)) do
+      assert_equal expected_result, tester.send(:test_task, task)
+    end
+  end
+
+  def output_for_test_task task
+    <<-HERE.gsub(/^\s+/, '')
+      Collecting targets for #{task.name}...
+      Running the #{task.name} on targets...
+    HERE
   end
 end
