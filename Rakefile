@@ -12,6 +12,8 @@ Hoe.spec 'fixman' do
   self.readme_file = 'README.md'
 
   dependency 'classy_hash', '~> 0.1'
+  dependency 'git', '~> 1.2'
+  dependency 'pry-byebug', '~> 1.2', :dev
 
   license 'Apache'
 end

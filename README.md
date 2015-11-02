@@ -4,13 +4,12 @@ code  :: https://github.com/madgen/fixman (url)
 
 ## DESCRIPTION:
 
+THIS PROJECT IS NOT YET READY FOR USAGE!
+
 A tool to test source code analysis command line tools against source code
 remotely available in git repositories such as GitHub.
 
 ## FEATURES/PROBLEMS:
-
-* FIX (list of features or problems)
-
 
 ## COMMAND LINE
 
